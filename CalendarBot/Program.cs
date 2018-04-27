@@ -16,7 +16,7 @@ namespace CalendarBot
 {
     class Program
     {
-        private static readonly TelegramBotClient bot = new TelegramBotClient("Enter code here");
+        private static readonly TelegramBotClient bot = new TelegramBotClient("Enter code");
         static string[] Scopes = { CalendarService.Scope.CalendarReadonly };
         static string ApplicationName = "Google Calendar API .NET Quickstart";
         static UserCredential credential;
@@ -63,35 +63,41 @@ namespace CalendarBot
             Console.WriteLine(text);
             if (e.Message.Type == Telegram.Bot.Types.Enums.MessageType.TextMessage && e.Message.Text.Equals("/getCal"))
             {
-				get_calendar();
-				EventsResource.ListRequest request = service.Events.List("primary");
-				request.TimeMin = DateTime.Now;
-				request.TimeMax = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 23, 59, 59);
-				request.ShowDeleted = false;
-				request.SingleEvents = true;
-				request.MaxResults = 10;
-				request.OrderBy = EventsResource.ListRequest.OrderByEnum.StartTime;
-				events = request.Execute();
+                get_calendar();
+                //EventsResource.ListRequest request = service.Events.List("primary");
+                CalendarListResource.ListRequest request1 = service.CalendarList.List();
+                var cals = request1.Execute();
+                for (int i = 0; i <= cals.Items.Count() - 1; i++)
+                {
+                    var name = cals.Items[i].Id;
+                    EventsResource.ListRequest request = service.Events.List(name);
+                    request.TimeMin = DateTime.Now;
+                    request.TimeMax = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 23, 59, 59);
+                    request.ShowDeleted = false;
+                    request.SingleEvents = true;
+                    request.MaxResults = 10;
+                    request.OrderBy = EventsResource.ListRequest.OrderByEnum.StartTime;
+                    events = request.Execute();
 
-				if (events.Items != null && events.Items.Count > 0)
-				{
-                    for (int i = 0; i <= events.Items.Count()-1; i++)
-					{
-                        var eventItem = events.Items[i];
-						string when = eventItem.Start.DateTime.ToString();
-						if (String.IsNullOrEmpty(when))
-						{
-							when = eventItem.Start.Date;
-						}
-                        bot.SendTextMessageAsync(e.Message.Chat.Id, eventItem.Summary + " " + when + " " + eventItem.Location);
-					}
-				}
-				else
-					bot.SendTextMessageAsync(e.Message.Chat.Id, "No upcoming events found.");
+                    if (events.Items != null && events.Items.Count > 0)
+                    {
+                        for (int j = 0; j <= events.Items.Count() - 1; j++)
+                        {
+                            var eventItem = events.Items[j];
+                            string when = eventItem.Start.DateTime.ToString();
+                            if (String.IsNullOrEmpty(when))
+                            {
+                                when = eventItem.Start.Date;
+                            }
+                            bot.SendTextMessageAsync(e.Message.Chat.Id, eventItem.Summary + " " + when + " " + eventItem.Location);
+                        }
+                    }
+                    else
+                        bot.SendTextMessageAsync(e.Message.Chat.Id, "No upcoming events found for Calendar: " + cals.Items[i].Summary);
+                }
             }
             else
                 bot.SendTextMessageAsync(e.Message.Chat.Id, "Please enter the correct command.");
-        
         }
     }
 }

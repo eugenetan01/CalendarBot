@@ -16,7 +16,7 @@ namespace CalendarBot
 {
     class Program
     {
-        private static readonly TelegramBotClient bot = new TelegramBotClient("549422210:AAEqs-auH-roK2RP1hLLtUS690dgHuMlADk");
+        private static readonly TelegramBotClient bot = new TelegramBotClient("Enter code here");
         static string[] Scopes = { CalendarService.Scope.CalendarReadonly };
         static string ApplicationName = "Google Calendar API .NET Quickstart";
         static UserCredential credential;
